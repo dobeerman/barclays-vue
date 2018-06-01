@@ -60,8 +60,6 @@ new Vue({
         return
       }
 
-      console.log(response);
-
       this.points = response.body.points;
 
       this.image = {
@@ -88,55 +86,54 @@ new Vue({
       let bounds = new google.maps.LatLngBounds();
 
       await response.body.points.map(async (point, i) => {
-          const distance = await this.$http
-            .get(this.distanceUrl(point.Location.coordinates)).then(dest => {
-              // console.log(dest);
-              if (dest.status === 200) {
-                const result = {
-                  dist: dest.body.rows[0].elements[0].distance.text,
-                  dur: dest.body.rows[0].elements[0].duration.text
-                }
-                console.log(result);
-                return result;
-              } else {
-                return {};
+        const distance = await this.$http
+          .get(this.distanceUrl(point.Location.coordinates)).then(dest => {
+            if (dest.status === 200) {
+              const result = {
+                dist: dest.body.rows[0].elements[0].distance.text,
+                dur: dest.body.rows[0].elements[0].duration.text
               }
-            })
+              console.log(result);
+              return result;
+            } else {
+              return {};
+            }
+          })
 
-          let content = this.contentString(point, distance);
-          // console.log(content);
+        let content = this.contentString(point, distance);
 
-          let infowindow = new google.maps.InfoWindow({content});
+        let infowindow = new google.maps.InfoWindow({content});
 
-          const position = new google.maps.LatLng(
-            point.Location.coordinates[1],
-            point.Location.coordinates[0]
-          );
+        const position = new google.maps.LatLng(
+          point.Location.coordinates[1],
+          point.Location.coordinates[0]
+        );
 
-          const marker = new google.maps.Marker({
-            position,
-            animation: google.maps.Animation.DROP,
-            icon: this.image,
-            shape: this.markerShape,
-            map: this.map,
-            infowindow
-          });
-          marker.id = point._id;
-          console.log('marker', marker);
+        const marker = new google.maps.Marker({
+          position,
+          animation: google.maps.Animation.DROP,
+          icon: this.image,
+          shape: this.markerShape,
+          map: this.map,
+          infowindow
+        });
+        marker.id = point._id;
 
-          let _self = this;
-          google.maps.event.addListener(marker, 'click', function() {
-            _self.hideAllInfoWindows();
-            this.infowindow.open(this.map, this);
-          });
+        let _self = this;
+        google.maps.event.addListener(marker, 'click', function() {
+          _self.hideAllInfoWindows();
+          this.infowindow.open(this.map, this);
+        });
 
-          bounds.extend(position);
-          this.markers.push(marker);
+        bounds.extend(position);
+        this.markers.push(marker);
+        this.map.setCenter(bounds.getCenter());
+        this.map.fitBounds(bounds);
 
-          content = this.contentString(point, distance, false);
-
-          this.listOfPoints.push({content, id: point._id})
-          this.map.fitBounds(bounds);
+        this.listOfPoints.push({
+          content: this.contentString(point, distance, false),
+          id: point._id
+        })
       })
 
 
@@ -145,8 +142,21 @@ new Vue({
     },
 
     listItemClick(e) {
-      console.log(e)
+      const id = e.target.closest('li').id;
+      let bounds = new google.maps.LatLngBounds();
+      const markerIndex = this.markers.findIndex(m => m.id === id);
+      bounds.extend(this.markers[markerIndex].position);
+      this.map.fitBounds(bounds);
+
+      zoomChangeBoundsListener = google.maps.event.addListenerOnce(this.map, 'bounds_changed', function(event) {
+        if ( this.getZoom() ){   // or set a minimum
+            this.setZoom(16);  // set zoom here
+        }
+      });
+
+      setTimeout(function(){google.maps.event.removeListener(zoomChangeBoundsListener)}, 2000);
     },
+
     /**
      * Addressee's name
      * House number and street name
@@ -155,13 +165,10 @@ new Vue({
      * COUNTRY (please print in capitals & use English name)
      */
     contentString(Point, distance = {}, content = true) {
-      console.log(Point);
-      // Branch, PostalAddress = {}
       const { BuildingNumber, StreetName, Country, TownName, PostCode} = Point.PostalAddress;
       const { Branch } = Point;
 
       Photo = (Branch && Branch[0]) ? Branch[0].Photo : './assets/BarclaysLogo240.svg';
-      console.log(Photo);
 
       if (!content) {
         return `
