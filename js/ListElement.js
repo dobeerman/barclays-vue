@@ -1,5 +1,5 @@
 Vue.component('list-element', {
-  props: ['content'],
+  props: ['content', 'id'],
 
-  template: `<div v-html="content"></div>`
+  template: `<li v-html="content" :id="id"></li>`,
 });
