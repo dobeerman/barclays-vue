@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8">
+  <title>Barclay's 10 closest ATMs</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Mobile Specific Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- FONT
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link href="https://fonts.googleapis.com/css?family=Titillium+Web:300,400,600" rel="stylesheet">
+
+  <!-- CSS
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/skeleton.css">
+  <link rel="stylesheet" href="css/custom.css">
+
+  <!-- Scripts
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <!-- <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> -->
+  <script src="https://vuejs.org/js/vue.js"></script>
+  <script src="https://unpkg.com/vue-resource@1.5.1/dist/vue-resource.min.js"></script>
+
+  <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <!-- <link rel="icon" type="image/png" href="images/favicon.png"> -->
+
+</head>
+<body>
+
+  <!-- Primary Page Layout
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+
+  <div id="app">
+
+    <div class="section hero">
+      <div class="container">
+        <div class="row">
+
+          <div class="four columns atms-list">
+            <div class="loading"></div>
+            <div class="list">
+              <ul class="list-elements">
+                <li v-for="point in listOfPoints"
+                    :key="point._id"
+                    class="list-element"
+                    @click.stop="listItemClick"
+                >
+                  <list-element :content="point.content" />
+                </li>
+                />
+              </ul>
+              {{ message }} <i class="current-location" @click="geoPosition"></i>
+            </div>
+          </div>
+
+          <div class="eight columns">
+            <div v-show="!isGeolocation" class="map no-map">Loading...</div>
+            <div v-show="isGeolocation" class="map google-map" id="map"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+<!-- Scripts
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <script>
+    Vue.config.devtools = true;
+  </script>
+
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDlCglC5DqTBNL1iUY8TU8hmZEtQLRKlSA"></script>
+  <script src="./js/ListElement.js"></script>
+  <script src="./js/script.js"></script>
+
+<!-- End Document
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+</body>
+</html>
