@@ -1,11 +1,12 @@
 new Vue({
   el: '#app',
+
   data() {
     return {
       isGeolocation: false,
       map: null,
       marker: null,
-      message: 'Pre',
+      message: 'Get my location',
       marker: './assets/BarclaysMarker.png',
       points: [],
       markers: [],
@@ -23,31 +24,25 @@ new Vue({
     }
   },
 
-  created() {
-
-  },
-
   mounted() {
     this.fetchPoints();
   },
 
-  beforeDestroy() {
-    console.log('beforeDestroy');
-    // this.markers.map(marker => marker.removeListener('click'))
-  },
-
   methods: {
     geoPosition() {
+      this.isGeolocation = false;
       this.watchId = navigator.geolocation.getCurrentPosition(this.geoSuccess, this.geoError, this.geoOptions);
     },
+
     geoSuccess(position) {
-      this.origins.lat = position.coords.latitude;
-      this.origins.lng = position.coords.longitude;
-      this.fetchPoints();
+      this.origins.lng = position.coords.latitude;
+      this.origins.lat = position.coords.longitude;
     },
+
     geoError() {
       console.log('No position');
     },
+
     async fetchPoints() {
       let response;
 
@@ -57,24 +52,22 @@ new Vue({
           .then(response => response);
       } catch (error) {
         console.log(error);
+        this.isGeolocation = true;
         return
       }
 
+      this.isGeolocation = true;
       this.points = response.body.points;
-
       this.image = {
         url: this.marker,
         size: new google.maps.Size(32, 48),
         origin: new google.maps.Point(0, 0),
         anchor: new google.maps.Point(12, 48),
       };
-
       this.markerShape = {
         coords: [17, 48, 4, 27, 1, 17, 5, 7, 10, 3, 17, 1, 26, 3, 31, 7, 35, 17, 32, 26, 17, 48],
         type: 'poly',
       };
-
-      this.marker = null;
 
       this.map = new google.maps.Map(document.getElementById('map'), {
         center: new google.maps.LatLng(this.origins.lng, this.origins.lat),
@@ -93,7 +86,6 @@ new Vue({
                 dist: dest.body.rows[0].elements[0].distance.text,
                 dur: dest.body.rows[0].elements[0].duration.text
               }
-              console.log(result);
               return result;
             } else {
               return {};
@@ -101,13 +93,8 @@ new Vue({
           })
 
         let content = this.contentString(point, distance);
-
         let infowindow = new google.maps.InfoWindow({content});
-
-        const position = new google.maps.LatLng(
-          point.Location.coordinates[1],
-          point.Location.coordinates[0]
-        );
+        const position = new google.maps.LatLng(point.Location.coordinates[1], point.Location.coordinates[0]);
 
         const marker = new google.maps.Marker({
           position,
@@ -130,14 +117,9 @@ new Vue({
         this.map.setCenter(bounds.getCenter());
         this.map.fitBounds(bounds);
 
-        this.listOfPoints.push({
-          content: this.contentString(point, distance, false),
-          id: point._id
-        })
+        this.listOfPoints.push({ content: this.contentString(point, distance, false), id: point._id })
       })
 
-
-      this.message = 'Post'
       this.isGeolocation = true;
     },
 
@@ -149,12 +131,20 @@ new Vue({
       this.map.fitBounds(bounds);
 
       zoomChangeBoundsListener = google.maps.event.addListenerOnce(this.map, 'bounds_changed', function(event) {
-        if ( this.getZoom() ){   // or set a minimum
-            this.setZoom(16);  // set zoom here
-        }
+        if (this.getZoom()) this.setZoom(16);
       });
 
       setTimeout(function(){google.maps.event.removeListener(zoomChangeBoundsListener)}, 2000);
+    },
+
+    listItemClickAll() {
+      this.hideAllInfoWindows();
+      let bounds = new google.maps.LatLngBounds();
+      this.markers.map(m => {
+        bounds.extend(m.position);
+        this.map.setCenter(bounds.getCenter());
+      })
+      this.map.fitBounds(bounds);
     },
 
     /**
@@ -172,7 +162,7 @@ new Vue({
 
       if (!content) {
         return `
-        <div class="container info-container" id="${Point._id}>
+        <div class="container info-container" id="${Point._id}">
           <div class="row">
             <div class="u-max-full-width">
               <strong><small>${Branch[0] && Branch[0].Name || ''} ${Country}</small></strong>
@@ -221,11 +211,9 @@ new Vue({
     distanceUrl(destination) {
       const baseURL = 'https://maps.googleapis.com/maps/api/distancematrix/json';
       const tail = '&mode=walking&language=en-UK&units=imperial';
-
       const url = `${baseURL}?origins=${this.origins.lng},${this.origins.lat}&destinations=${destination[1]},${destination[0]}${tail}`;
 
       return url;
-
     }
   },
 
@@ -233,7 +221,7 @@ new Vue({
     origins: {
       handler: function (val, oldVal) {
         this.fetchPoints();
-       },
+      },
       deep: true
     }
   }

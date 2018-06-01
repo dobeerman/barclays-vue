@@ -49,11 +49,21 @@
             <div class="loading"></div>
             <div class="list">
               <ul class="list-elements">
+
+                <li class="list-element" @click="listItemClickAll">
+                  <strong>
+                    <small>Show all</small>
+                  </strong>
+                </li>
+
                 <list-element v-for="point in listOfPoints"
-                              :content="point.content"
-                              :id="point.id"
-                              class="list-element"
-                              @click.native="listItemClick" />
+                            :content="point.content"
+                            :id="point.id"
+                            :key="point.id"
+                            class="list-element"
+                            @click.native="listItemClick"
+                />
+
               </ul>
               {{ message }} <i class="current-location" @click="geoPosition"></i>
             </div>
@@ -69,7 +79,6 @@
     </div>
 
   </div>
-
 
 <!-- Scripts
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
