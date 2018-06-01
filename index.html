@@ -49,14 +49,11 @@
             <div class="loading"></div>
             <div class="list">
               <ul class="list-elements">
-                <li v-for="point in listOfPoints"
-                    :key="point._id"
-                    class="list-element"
-                    @click.stop="listItemClick"
-                >
-                  <list-element :content="point.content" />
-                </li>
-                />
+                <list-element v-for="point in listOfPoints"
+                              :content="point.content"
+                              :id="point.id"
+                              class="list-element"
+                              @click.native="listItemClick" />
               </ul>
               {{ message }} <i class="current-location" @click="geoPosition"></i>
             </div>
